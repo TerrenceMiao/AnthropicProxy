@@ -22,7 +22,11 @@ Key features:
 
 **Model**: `deepseek/deepseek-chat-v3-0324`
 
-![Claude Proxy Example](docs/example.png)
+![Anthropic Proxy example](docs/deepseek.png)
+
+**Model**: `claude-sonnet-4` on **Github Copilot**
+
+![Anthropic Proxy example](docs/copilot.png)
 
 ## Getting Started
 
