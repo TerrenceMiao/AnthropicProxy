@@ -20,7 +20,7 @@ Key features:
 
 ## Example
 
-**Model**: `deepseek/deepseek-chat-v3-0324`
+**Model**: `deepseek/deepseek-chat-v3-0324` on **OpenRouter**
 
 ![Anthropic Proxy example](docs/deepseek.png)
 
