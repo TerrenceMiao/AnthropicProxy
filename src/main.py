@@ -1832,8 +1832,10 @@ if __name__ == "__main__":
     config_details_text = Text.assemble(
         ("   Version       : ", "default"),
         (f"v{settings.app_version}", "bold cyan"),
-        ("\n   Claude CLI    : ", "default"),
-        (f"v{settings.claude_code_version}", "red"),        
+        ("\n   Listening on  : ", "default"),
+        (f"http://{settings.host}:{settings.port}", "bold white"),
+        ("\n   Forwarding to : ", "default"),
+        (f"{settings.base_url}", "bold blue"),           
         ("\n   Big Model     : ", "default"),
         (settings.big_model_name, "magenta"),
         ("\n   Small Model   : ", "default"),
@@ -1842,10 +1844,10 @@ if __name__ == "__main__":
         (settings.log_level.upper(), "yellow"),
         ("\n   Log File      : ", "default"),
         (settings.log_file_path or "Disabled", "dim"),
-        ("\n   Listening on  : ", "default"),
-        (f"http://{settings.host}:{settings.port}", "bold white"),
         ("\n   Reload        : ", "default"),
         ("Enabled", "bold orange1") if settings.reload else ("Disabled", "dim"),
+        ("\n   Claude CLI    : ", "default"),
+        (f"v{settings.claude_code_version}", "red"),            
     )
     _console.print(
         Panel(
