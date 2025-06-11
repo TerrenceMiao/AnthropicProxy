@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 import uuid
+import subprocess
 from datetime import datetime, timezone
 from logging.config import dictConfig
 from typing import (Any, AsyncGenerator, Awaitable, Callable, Dict, List,
@@ -36,6 +37,21 @@ from rich.text import Text
 load_dotenv()
 
 
+def get_claude_cli_version() -> str:
+    """Get the Claude CLI version by running external command."""
+    try:
+        result = subprocess.run(
+            ["claude", "--version"], 
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+        version = result.stdout.strip()
+        return version
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return "?.?.?"  # Default fallback version
+
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -44,15 +60,21 @@ class Settings(BaseSettings):
     openai_api_key: str
     big_model_name: str
     small_model_name: str
-    base_url: str = "https://openrouter.ai/api/v1"
-    referrer_url: str = "http://localhost:8080/claude_proxy"
+    # e.g. "https://openrouter.ai/api/v1"
+    base_url: str
+    # e.g. "http://localhost:8080/AnthropicProxy"
+    referrer_url: str
 
+    claude_code_version: str = get_claude_cli_version()
+    
     app_name: str = "AnthropicProxy"
-    app_version: str = "0.2.0"
+    app_version: str = "1.0.0"
     log_level: str = "INFO"
     log_file_path: Optional[str] = "log.jsonl"
-    host: str = "127.0.0.1"
-    port: int = 8080
+    # e.g."127.0.0.1"
+    host: str
+    # e.g. 8080
+    port: int
     reload: bool = True
 
 
@@ -1793,23 +1815,25 @@ async def logging_middleware(
 if __name__ == "__main__":
     _console.print(
         r"""[bold blue]
-           /$$                           /$$
-          | $$                          | $$
-  /$$$$$$$| $$  /$$$$$$  /$$   /$$  /$$$$$$$  /$$$$$$         /$$$$$$   /$$$$$$   /$$$$$$  /$$   /$$ /$$   /$$
- /$$_____/| $$ |____  $$| $$  | $$ /$$__  $$ /$$__  $$       /$$__  $$ /$$__  $$ /$$__  $$|  $$ /$$/| $$  | $$
-| $$      | $$  /$$$$$$$| $$  | $$| $$  | $$| $$$$$$$$      | $$  \ $$| $$  \__/| $$  \ $$ \  $$$$/ | $$  | $$
-| $$      | $$ /$$__  $$| $$  | $$| $$  | $$| $$_____/      | $$  | $$| $$      | $$  | $$  >$$  $$ | $$  | $$
-|  $$$$$$$| $$|  $$$$$$$|  $$$$$$/|  $$$$$$$|  $$$$$$$      | $$$$$$$/| $$      |  $$$$$$/ /$$/\  $$|  $$$$$$$
- \_______/|__/ \_______/ \______/  \_______/ \_______/      | $$____/ |__/       \______/ |__/  \__/ \____  $$
-                                                            | $$                                     /$$  | $$
-                                                            | $$                                    |  $$$$$$/
-                                                            |__/                                     \______/ 
+  /$$$$$$              /$$     /$$                                     /$$                 /$$$$$$$                                        
+ /$$__  $$            | $$    | $$                                    |__/                | $$__  $$                                       
+| $$  \ $$ /$$$$$$$  /$$$$$$  | $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$  /$$  /$$$$$$$      | $$  \ $$ /$$$$$$   /$$$$$$  /$$   /$$ /$$   /$$
+| $$$$$$$$| $$__  $$|_  $$_/  | $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$| $$ /$$_____/      | $$$$$$$//$$__  $$ /$$__  $$|  $$ /$$/| $$  | $$
+| $$__  $$| $$  \ $$  | $$    | $$  \ $$| $$  \__/| $$  \ $$| $$  \ $$| $$| $$            | $$____/| $$  \__/| $$  \ $$ \  $$$$/ | $$  | $$
+| $$  | $$| $$  | $$  | $$ /$$| $$  | $$| $$      | $$  | $$| $$  | $$| $$| $$            | $$     | $$      | $$  | $$  >$$  $$ | $$  | $$
+| $$  | $$| $$  | $$  |  $$$$/| $$  | $$| $$      |  $$$$$$/| $$$$$$$/| $$|  $$$$$$$      | $$     | $$      |  $$$$$$/ /$$/\  $$|  $$$$$$$
+|__/  |__/|__/  |__/   \___/  |__/  |__/|__/       \______/ | $$____/ |__/ \_______/      |__/     |__/       \______/ |__/  \__/ \____  $$
+                                                            | $$                                                                  /$$  | $$
+                                                            | $$                                                                 |  $$$$$$/
+                                                            |__/                                                                  \______/     
     [/]""",
         justify="left",
     )
     config_details_text = Text.assemble(
         ("   Version       : ", "default"),
         (f"v{settings.app_version}", "bold cyan"),
+        ("\n   Claude CLI    : ", "default"),
+        (f"v{settings.claude_code_version}", "red"),        
         ("\n   Big Model     : ", "default"),
         (settings.big_model_name, "magenta"),
         ("\n   Small Model   : ", "default"),

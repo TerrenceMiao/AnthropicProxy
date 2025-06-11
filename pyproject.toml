@@ -1,7 +1,7 @@
 [project]
-name = "claude-code-provider-proxy"
-version = "0.1.0"
-description = "Proxy that translates between Anthropic API and OpenAI/LiteLLM"
+name = "AnthropicProxy"
+version = "1.0.0"
+description = "Proxy that translates between Anthropic API and OpenAI/LiteLLM API"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
