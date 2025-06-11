@@ -29,8 +29,8 @@ Key features:
 ### Prerequisites
 
 - Python 3.10+
-- OpenAI API or compatible LLM services e.g. OpenRouter key
-- [uv](https://github.com/astral-sh/uv)
+- OpenAI API or compatible LLM services e.g. `OpenRouter` key
+- `uv`, _https://github.com/astral-sh/uv_
 
 ### Configuration
 
