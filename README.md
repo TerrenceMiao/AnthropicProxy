@@ -70,7 +70,10 @@ See `.env.example` for more configuration options.
 ### Running the Server
 
 ```bash
-$ uv --sync
+$ uv --version
+uv 0.7.13 (62ed17b23 2025-06-12)
+
+$ uv sync
 
 $ uv run src/main.py
 ```
