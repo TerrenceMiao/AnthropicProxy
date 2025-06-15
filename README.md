@@ -31,13 +31,13 @@ Key features:
 ### Global Installation
 
 ```bash
-npm install -g anthropic-proxy
+npm install -g anthropic-proxy-nextgen
 ```
 
 ### Local Installation
 
 ```bash
-npm install anthropic-proxy
+npm install anthropic-proxy-nextgen
 ```
 
 ## Usage
@@ -47,7 +47,7 @@ npm install anthropic-proxy
 Start the proxy server using the CLI:
 
 ```bash
-npx anthropic-proxy start \
+npx anthropic-proxy-nextgen start \
   --port 8080 \
   --base-url=http://localhost:4000 \
   --big-model-name=github-copilot-claude-sonnet-4 \
@@ -94,13 +94,13 @@ OPENAI_API_KEY=sk-your-api-key
 BIG_MODEL_NAME=github-copilot-claude-sonnet-4
 SMALL_MODEL_NAME=github-copilot-claude-3.5-sonnet
 LOG_LEVEL=DEBUG
-LOG_FILE_PATH=./logs/anthropic-proxy.jsonl
+LOG_FILE_PATH=./logs/anthropic-proxy-nextgen.jsonl
 ```
 
 ### Programmatic Usage
 
 ```typescript
-import { startServer, createLogger, Config } from 'anthropic-proxy';
+import { startServer, createLogger, Config } from 'anthropic-proxy-nextgen';
 
 const config: Config = {
   host: '127.0.0.1',
@@ -180,7 +180,7 @@ ANTHROPIC_BASE_URL=http://localhost:8080 claude
 ### OpenRouter
 
 ```bash
-npx anthropic-proxy start \
+npx anthropic-proxy-nextgen start \
   --base-url=https://openrouter.ai/api/v1 \
   --openai-api-key=sk-or-v1-your-openrouter-key \
   --big-model-name=anthropic/claude-3-opus \
@@ -190,7 +190,7 @@ npx anthropic-proxy start \
 ### GitHub Copilot
 
 ```bash
-npx anthropic-proxy start \
+npx anthropic-proxy-nextgen start \
   --base-url=http://localhost:4000 \
   --openai-api-key=sk-your-github-copilot-key \
   --big-model-name=github-copilot-claude-sonnet-4 \
@@ -200,7 +200,7 @@ npx anthropic-proxy start \
 ### Local LLM
 
 ```bash
-npx anthropic-proxy start \
+npx anthropic-proxy-nextgen start \
   --base-url=http://localhost:1234/v1 \
   --openai-api-key=not-needed \
   --big-model-name=local-large-model \

@@ -34,7 +34,7 @@ npm run lint:fix
 ### CLI Usage
 ```bash
 # Start the proxy server with CLI
-npx anthropic-proxy start --port 8080 --base-url=http://localhost:4000 --big-model-name=github-copilot-claude-sonnet-4 --small-model-name=github-copilot-claude-3.5-sonnet --openai-api-key=sk-your-key --log-level=DEBUG
+npx anthropic-proxy-nextgen start --port 8080 --base-url=http://localhost:4000 --big-model-name=github-copilot-claude-sonnet-4 --small-model-name=github-copilot-claude-3.5-sonnet --openai-api-key=sk-your-key --log-level=DEBUG
 
 # Test with Claude Code
 ANTHROPIC_BASE_URL=http://localhost:8080 claude
@@ -131,8 +131,8 @@ Structured JSON logging with:
 ## Deployment
 
 The application compiles to a standalone Node.js application that can be:
-1. **Installed globally**: `npm install -g anthropic-proxy`
-2. **Run directly**: `npx anthropic-proxy@latest start [options]`
+1. **Installed globally**: `npm install -g anthropic-proxy-nextgen`
+2. **Run directly**: `npx anthropic-proxy-nextgen@latest start [options]`
 3. **Used programmatically**: Import as a TypeScript/JavaScript module
 
 ## Migration Notes

@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 const program = new Command();
 
 program
-  .name('anthropic-proxy')
+  .name('anthropic-proxy-nextgen')
   .description('A proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API')
   .version('1.0.0');
 
