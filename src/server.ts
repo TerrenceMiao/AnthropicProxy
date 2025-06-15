@@ -388,14 +388,14 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
       
       console.log('\n📊 \x1b[36m%s\x1b[0m', 'Anthropic Proxy Configuration');
       console.log('   Version       :', `\x1b[96mv${config.appVersion}\x1b[0m`);
-      console.log('   Listening on  :', `\x1b[97mhttp://${config.host}:${config.port}\x1b[0m`);
+      console.log('   Listening on  :', `\x1b[33mhttp://${config.host}:${config.port}\x1b[0m`);
       console.log('   Forwarding to :', `\x1b[94m${config.baseUrl}\x1b[0m`);
       console.log('   Big Model     :', `\x1b[95m${config.bigModelName}\x1b[0m`);
       console.log('   Small Model   :', `\x1b[92m${config.smallModelName}\x1b[0m`);
       console.log('   Log Level     :', `\x1b[93m${config.logLevel.toUpperCase()}\x1b[0m`);
       console.log('   Log File      :', `\x1b[90m${config.logFilePath || 'Disabled'}\x1b[0m`);
       console.log('   Reload        :', config.reload ? '\x1b[91mEnabled\x1b[0m' : '\x1b[90mDisabled\x1b[0m');
-      console.log('   Claude CLI    :', `\x1b[91mv${config.claudeCodeVersion || '?.?.?'}\x1b[0m`);
+      console.log('   Claude CLI    :', `\x1b[32m${config.claudeCodeVersion || '?.?.?'}\x1b[0m`);
       console.log('\n🚀 \x1b[36m%s\x1b[0m', 'Server started successfully!');
       
       resolve();

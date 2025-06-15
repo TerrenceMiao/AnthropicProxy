@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { startServer } from './server';
 import { Config } from './types';
 import { createLogger, Logger } from './logger';
+import { execSync } from 'child_process';
 
 const program = new Command();
 
@@ -26,6 +27,18 @@ program
   .option('--log-file <path>', 'Log file path for JSON logs')
   .option('--no-reload', 'Disable auto-reload in development')
   .action(async (options) => {
+    let claudeCodeVersion = 'unknown';
+    try {
+      const versionOutput = execSync('claude --version', { encoding: 'utf-8' });
+      const match = versionOutput.match(/([\d.]+) \(Claude Code\)/);
+      if (match) {
+        claudeCodeVersion = match[1] + ' (Claude Code)';
+      } else {
+        claudeCodeVersion = versionOutput.trim();
+      }
+    } catch {
+      claudeCodeVersion = 'unknown';
+    }
     const config: Config = {
       host: options.host,
       port: parseInt(options.port, 10),
@@ -39,6 +52,7 @@ program
       reload: options.reload !== false,
       appName: 'AnthropicProxy',
       appVersion: '1.0.0',
+      claudeCodeVersion,
     };
 
     // Validate required options
