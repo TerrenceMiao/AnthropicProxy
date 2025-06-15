@@ -4,18 +4,16 @@ import {
   ContentBlock,
   Tool,
   ToolChoice,
-  OpenAIMessage,
   StopReasonType,
   LogEvent,
-  LogRecord,
   MessagesResponse,
   Usage,
   ContentBlockText,
   ContentBlockToolUse,
-  ContentBlockToolResult,
 } from './types';
 import { Logger } from './logger';
-import { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions';
+import { ChatCompletion } from 'openai/resources/chat/completions';
+import type { ChatCompletionMessageParam, ChatCompletionTool, ChatCompletionToolChoiceOption } from 'openai/resources/chat/completions';
 
 export function selectTargetModel(clientModelName: string, bigModelName: string, smallModelName: string, logger: Logger, requestId: string): string {
   const clientModelLower = clientModelName.toLowerCase();
@@ -53,8 +51,8 @@ export function convertAnthropicToOpenAIMessages(
   anthropicSystem?: string | SystemContent[],
   logger?: Logger,
   requestId?: string
-): OpenAIMessage[] {
-  const openaiMessages: OpenAIMessage[] = [];
+): ChatCompletionMessageParam[] {
+  const openaiMessages: ChatCompletionMessageParam[] = [];
 
   // Handle system prompt
   let systemTextContent = '';
@@ -248,10 +246,10 @@ export function convertAnthropicToOpenAIMessages(
 }
 
 function serializeToolResultContentForOpenAI(
-  anthropicToolResultContent: string | Record<string, any>[] | any[],
+  anthropicToolResultContent: string | Record<string, unknown>[] | unknown[],
   logger?: Logger,
   requestId?: string,
-  logContext?: Record<string, any>
+  logContext?: Record<string, unknown>
 ): string {
   if (typeof anthropicToolResultContent === 'string') {
     return anthropicToolResultContent;
@@ -305,16 +303,16 @@ function serializeToolResultContentForOpenAI(
   }
 }
 
-export function convertAnthropicToolsToOpenAI(anthropicTools?: Tool[]): any[] | undefined {
+export function convertAnthropicToolsToOpenAI(anthropicTools?: Tool[]): ChatCompletionTool[] | undefined {
   if (!anthropicTools) {
     return undefined;
   }
   return anthropicTools.map(t => ({
-    type: 'function',
+    type: 'function' as const,
     function: {
       name: t.name,
       description: t.description || '',
-      parameters: t.input_schema,
+      parameters: t.input_schema as Record<string, unknown>,
     },
   }));
 }
@@ -323,7 +321,7 @@ export function convertAnthropicToolChoiceToOpenAI(
   anthropicChoice?: ToolChoice,
   logger?: Logger,
   requestId?: string
-): string | { type: string; function: { name: string } } | undefined {
+): ChatCompletionToolChoiceOption | undefined {
   if (!anthropicChoice) {
     return undefined;
   }
@@ -345,7 +343,7 @@ export function convertAnthropicToolChoiceToOpenAI(
   }
 
   if (anthropicChoice.type === 'tool' && anthropicChoice.name) {
-    return { type: 'function', function: { name: anthropicChoice.name } };
+    return { type: 'function' as const, function: { name: anthropicChoice.name } };
   }
 
   if (logger) {
@@ -393,7 +391,7 @@ export function convertOpenAIToAnthropicResponse(
     if (message.tool_calls) {
       for (const call of message.tool_calls) {
         if (call.type === 'function') {
-          let toolInputDict: Record<string, any> = {};
+          let toolInputDict: Record<string, unknown> = {};
           try {
             const parsedInput = JSON.parse(call.function.arguments);
             if (typeof parsedInput === 'object' && parsedInput !== null) {

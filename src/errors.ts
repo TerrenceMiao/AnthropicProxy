@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import * as express from 'express';
 import { APIError, AuthenticationError, RateLimitError, BadRequestError, PermissionDeniedError, NotFoundError, InternalServerError } from 'openai';
 import { 
   AnthropicErrorType, 
@@ -6,29 +7,28 @@ import {
   AnthropicErrorResponse, 
   STATUS_CODE_ERROR_MAP, 
   ProviderErrorMetadata,
-  LogEvent,
-  LogRecord
+  LogEvent
 } from './types';
 import { Logger } from './logger';
 
-export function extractProviderErrorDetails(errorDetails?: any): ProviderErrorMetadata | undefined {
+export function extractProviderErrorDetails(errorDetails?: unknown): ProviderErrorMetadata | undefined {
   if (!errorDetails || typeof errorDetails !== 'object') {
     return undefined;
   }
   
-  const metadata = errorDetails.metadata;
-  if (!metadata || typeof metadata !== 'object') {
+  const metadata = (errorDetails as { metadata?: unknown }).metadata;
+  if (!metadata || typeof metadata !== 'object' || metadata === null) {
     return undefined;
   }
   
-  const providerName = metadata.provider_name;
-  const rawErrorStr = metadata.raw;
+  const providerName = (metadata as { provider_name?: unknown }).provider_name;
+  const rawErrorStr = (metadata as { raw?: unknown }).raw;
   
   if (!providerName || typeof providerName !== 'string') {
     return undefined;
   }
   
-  let parsedRawError: Record<string, any> | undefined;
+  let parsedRawError: Record<string, unknown> | undefined;
   if (typeof rawErrorStr === 'string') {
     try {
       parsedRawError = JSON.parse(rawErrorStr);
@@ -36,7 +36,7 @@ export function extractProviderErrorDetails(errorDetails?: any): ProviderErrorMe
       parsedRawError = { raw_string_parse_failed: rawErrorStr };
     }
   } else if (typeof rawErrorStr === 'object' && rawErrorStr !== null) {
-    parsedRawError = rawErrorStr;
+    parsedRawError = rawErrorStr as Record<string, unknown>;
   }
   
   return {
@@ -65,7 +65,7 @@ export function getAnthropicErrorDetailsFromException(
     
     // Extract provider details if available
     if ('body' in exc && typeof exc.body === 'object' && exc.body !== null) {
-      const actualErrorDetails = (exc.body as any).error || exc.body;
+      const actualErrorDetails = (exc.body as { error?: unknown }).error || exc.body;
       providerDetails = extractProviderErrorDetails(actualErrorDetails);
     }
   }
@@ -101,13 +101,13 @@ export function formatAnthropicErrorSSEEvent(
   if (providerDetails) {
     anthropicErrDetail.provider = providerDetails.provider_name;
     if (providerDetails.raw_error && typeof providerDetails.raw_error === 'object') {
-      const provErrObj = providerDetails.raw_error.error;
+      const provErrObj = (providerDetails.raw_error as { error?: { message?: string; code?: string | number } }).error;
       if (provErrObj && typeof provErrObj === 'object') {
         anthropicErrDetail.provider_message = provErrObj.message;
         anthropicErrDetail.provider_code = provErrObj.code;
-      } else if (typeof providerDetails.raw_error.message === 'string') {
-        anthropicErrDetail.provider_message = providerDetails.raw_error.message;
-        anthropicErrDetail.provider_code = providerDetails.raw_error.code;
+      } else if (typeof (providerDetails.raw_error as { message?: string; code?: string | number }).message === 'string') {
+        anthropicErrDetail.provider_message = (providerDetails.raw_error as { message: string }).message;
+        anthropicErrDetail.provider_code = (providerDetails.raw_error as { code?: string | number }).code;
       }
     }
   }
@@ -134,13 +134,13 @@ export function buildAnthropicErrorResponse(
   if (providerDetails) {
     errDetail.provider = providerDetails.provider_name;
     if (providerDetails.raw_error && typeof providerDetails.raw_error === 'object') {
-      const provErrObj = providerDetails.raw_error.error;
+      const provErrObj = (providerDetails.raw_error as { error?: { message?: string; code?: string | number } }).error;
       if (provErrObj && typeof provErrObj === 'object') {
         errDetail.provider_message = provErrObj.message;
         errDetail.provider_code = provErrObj.code;
-      } else if (typeof providerDetails.raw_error.message === 'string') {
-        errDetail.provider_message = providerDetails.raw_error.message;
-        errDetail.provider_code = providerDetails.raw_error.code;
+      } else if (typeof (providerDetails.raw_error as { message?: string; code?: string | number }).message === 'string') {
+        errDetail.provider_message = (providerDetails.raw_error as { message: string }).message;
+        errDetail.provider_code = (providerDetails.raw_error as { code?: string | number }).code;
       }
     }
   }
@@ -166,11 +166,11 @@ export async function logAndReturnErrorResponse(
   providerDetails?: ProviderErrorMetadata,
   caughtException?: Error
 ): Promise<void> {
-  const requestId = (req as any).requestId || 'unknown';
-  const startTimeMono = (req as any).startTimeMonotonic || Date.now();
+  const requestId = (req as { requestId?: string }).requestId || 'unknown';
+  const startTimeMono = (req as { startTimeMonotonic?: number }).startTimeMonotonic || Date.now();
   const durationMs = Date.now() - startTimeMono;
   
-  const logData: Record<string, any> = {
+  const logData: Record<string, unknown> = {
     status_code: statusCode,
     duration_ms: durationMs,
     error_type: anthropicErrorType,
@@ -201,7 +201,7 @@ export async function logAndReturnErrorResponse(
 
 // Express error handlers
 export function createOpenAIAPIErrorHandler(logger: Logger) {
-  return async (error: APIError, req: Request, res: Response, next: Function) => {
+  return async (error: APIError, req: Request, res: Response) => {
     const { errorType, errorMessage, statusCode, providerDetails } = getAnthropicErrorDetailsFromException(error);
     await logAndReturnErrorResponse(
       req,
@@ -217,7 +217,7 @@ export function createOpenAIAPIErrorHandler(logger: Logger) {
 }
 
 export function createValidationErrorHandler(logger: Logger) {
-  return async (error: Error, req: Request, res: Response, next: Function) => {
+  return async (error: Error, req: Request, res: Response, next: express.NextFunction) => {
     if (error.name === 'ZodError') {
       await logAndReturnErrorResponse(
         req,
@@ -236,7 +236,7 @@ export function createValidationErrorHandler(logger: Logger) {
 }
 
 export function createJSONDecodeErrorHandler(logger: Logger) {
-  return async (error: SyntaxError, req: Request, res: Response, next: Function) => {
+  return async (error: SyntaxError, req: Request, res: Response, next: express.NextFunction) => {
     if (error.message.includes('JSON')) {
       await logAndReturnErrorResponse(
         req,
@@ -255,7 +255,7 @@ export function createJSONDecodeErrorHandler(logger: Logger) {
 }
 
 export function createGenericErrorHandler(logger: Logger) {
-  return async (error: Error, req: Request, res: Response, next: Function) => {
+  return async (error: Error, req: Request, res: Response) => {
     await logAndReturnErrorResponse(
       req,
       res,

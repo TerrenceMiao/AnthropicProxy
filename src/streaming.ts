@@ -4,7 +4,7 @@ import { Stream } from 'openai/streaming';
 import { v4 as uuidv4 } from 'uuid';
 import { getTokenEncoder } from './tokenizer';
 import { Logger } from './logger';
-import { LogEvent, StopReasonType, AnthropicErrorType, ProviderErrorMetadata } from './types';
+import { LogEvent, StopReasonType, AnthropicErrorType } from './types';
 
 interface ToolState {
   id: string;
@@ -32,7 +32,7 @@ export async function handleAnthropicStreamingResponseFromOpenAIStream(
   let outputTokenCount = 0;
   let finalAnthropicStopReason: StopReasonType = null;
   
-  const encoder = getTokenEncoder(originalAnthropicModelName, logger, requestId);
+  const encoder = getTokenEncoder(logger, requestId);
   
   const openaiToAnthropicStopReasonMap: Record<string, StopReasonType> = {
     stop: 'end_turn',
@@ -54,7 +54,7 @@ export async function handleAnthropicStreamingResponseFromOpenAIStream(
     'X-Request-ID': requestId,
   });
   
-  function writeSSE(event: string, data: any): void {
+  function writeSSE(event: string, data: unknown): void {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   }
   

@@ -1,14 +1,12 @@
 import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
+import type { ChatCompletionCreateParams } from 'openai/resources/chat/completions';
 import { 
   Config, 
   MessagesRequestSchema, 
   TokenCountRequestSchema,
-  MessagesRequest,
-  TokenCountRequest,
   LogEvent,
-  LogRecord,
   AnthropicErrorType 
 } from './types';
 import { Logger } from './logger';
@@ -58,14 +56,14 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
   
   // Request logging middleware
   app.use((req: Request, res: Response, next) => {
-    (req as any).requestId = uuidv4();
-    (req as any).startTimeMonotonic = Date.now();
+    (req as Request & { requestId: string; startTimeMonotonic: number }).requestId = uuidv4();
+    (req as Request & { requestId: string; startTimeMonotonic: number }).startTimeMonotonic = Date.now();
     
-    res.setHeader('X-Request-ID', (req as any).requestId);
+    res.setHeader('X-Request-ID', (req as Request & { requestId: string }).requestId);
     
     const originalSend = res.send;
     res.send = function(body) {
-      const durationMs = Date.now() - (req as any).startTimeMonotonic;
+      const durationMs = Date.now() - (req as Request & { startTimeMonotonic: number }).startTimeMonotonic;
       res.setHeader('X-Response-Time-ms', durationMs.toString());
       return originalSend.call(this, body);
     };
@@ -90,8 +88,8 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
 
   // Token counting endpoint
   app.post('/v1/messages/count_tokens', async (req: Request, res: Response) => {
-    const requestId = (req as any).requestId;
-    const startTimeMono = (req as any).startTimeMonotonic;
+    const requestId = (req as Request & { requestId: string }).requestId;
+    const startTimeMono = (req as Request & { startTimeMonotonic: number }).startTimeMonotonic;
     
     try {
       const countRequest = TokenCountRequestSchema.parse(req.body);
@@ -147,8 +145,8 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
 
   // Main messages endpoint
   app.post('/v1/messages', async (req: Request, res: Response) => {
-    const requestId = (req as any).requestId;
-    const startTimeMono = (req as any).startTimeMonotonic;
+    const requestId = (req as Request & { requestId: string }).requestId;
+    const startTimeMono = (req as Request & { startTimeMonotonic: number }).startTimeMonotonic;
     
     try {
       logger.debug({
@@ -216,7 +214,7 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
         requestId
       );
       
-      const openaiParams: any = {
+      const openaiParams: ChatCompletionCreateParams = {
         model: targetModelName,
         messages: openaiMessages,
         max_tokens: anthropicRequest.max_tokens,
@@ -256,7 +254,8 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
           request_id: requestId,
         });
         
-        const openaiStreamResponse = await openaiClient.chat.completions.create(openaiParams) as any;
+        const streamParams: ChatCompletionCreateParams = { ...openaiParams, stream: true };
+        const openaiStreamResponse = await openaiClient.chat.completions.create(streamParams);
         
         await handleAnthropicStreamingResponseFromOpenAIStream(
           openaiStreamResponse,
@@ -274,7 +273,8 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
           request_id: requestId,
         });
         
-        const openaiResponseObj = await openaiClient.chat.completions.create(openaiParams);
+        const nonStreamParams: ChatCompletionCreateParams = { ...openaiParams, stream: false };
+        const openaiResponseObj = await openaiClient.chat.completions.create(nonStreamParams);
         
         logger.debug({
           event: LogEvent.OPENAI_RESPONSE,

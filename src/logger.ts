@@ -1,12 +1,12 @@
 import winston from 'winston';
-import { Config, LogRecord, LogError, LogEvent } from './types';
+import { Config, LogRecord } from './types';
 
 class JSONFormatter {
   transform(info: winston.Logform.TransformableInfo) {
     const logRecord = info.logRecord as LogRecord | undefined;
     const timestamp = new Date().toISOString();
     
-    const header: Record<string, any> = {
+    const header: Record<string, unknown> = {
       timestamp,
       level: info.level.toUpperCase(),
       logger: info.label || 'AnthropicProxy',

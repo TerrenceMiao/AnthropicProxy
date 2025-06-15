@@ -178,20 +178,20 @@ export interface LogError {
   name: string;
   message: string;
   stack_trace?: string;
-  args?: any[];
+  args?: unknown[];
 }
 
 export interface LogRecord {
   event: string;
   message: string;
   request_id?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   error?: LogError;
 }
 
 export interface ProviderErrorMetadata {
   provider_name: string;
-  raw_error?: Record<string, any>;
+  raw_error?: Record<string, unknown>;
 }
 
 // Type exports for Zod schemas

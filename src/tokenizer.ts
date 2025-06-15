@@ -1,17 +1,17 @@
 import { Tiktoken, encoding_for_model, get_encoding } from 'tiktoken';
-import { Message, SystemContent, Tool, ContentBlock, LogEvent, LogRecord } from './types';
+import { Message, SystemContent, Tool, ContentBlock, LogEvent } from './types';
 import { Logger } from './logger';
 
 const tokenEncoderCache: Map<string, Tiktoken> = new Map();
 
-export function getTokenEncoder(modelName: string = 'gpt-4', logger?: Logger, requestId?: string): Tiktoken {
+export function getTokenEncoder(logger?: Logger, requestId?: string): Tiktoken {
   const cacheKey = 'gpt-4';
   
   if (!tokenEncoderCache.has(cacheKey)) {
     try {
       const encoder = encoding_for_model('gpt-4');
       tokenEncoderCache.set(cacheKey, encoder);
-    } catch (error) {
+    } catch {
       try {
         const encoder = get_encoding('cl100k_base');
         tokenEncoderCache.set(cacheKey, encoder);
@@ -23,13 +23,13 @@ export function getTokenEncoder(modelName: string = 'gpt-4', logger?: Logger, re
             data: { model_tried: cacheKey },
           });
         }
-      } catch (fallbackError) {
+      } catch {
         if (logger) {
           logger.critical({
             event: LogEvent.TOKEN_ENCODER_LOAD_FAILED,
             message: 'Failed to load any tiktoken encoder (gpt-4, cl100k_base). Token counting will be inaccurate.',
             request_id: requestId,
-          }, fallbackError as Error);
+          });
         }
         
         // Create a dummy encoder as last resort
@@ -61,7 +61,7 @@ export function countTokensForAnthropicRequest(
   logger?: Logger,
   requestId?: string
 ): number {
-  const encoder = getTokenEncoder(modelName, logger, requestId);
+  const encoder = getTokenEncoder(logger, requestId);
   let totalTokens = 0;
 
   // Count system prompt tokens
@@ -102,7 +102,7 @@ export function countTokensForAnthropicRequest(
       try {
         const schemaStr = JSON.stringify(tool.input_schema);
         totalTokens += encoder.encode(schemaStr).length;
-      } catch (error) {
+      } catch {
         if (logger) {
           logger.warning({
             event: LogEvent.TOOL_INPUT_SERIALIZATION_FAILURE,
@@ -140,12 +140,12 @@ function countContentBlockTokens(
     case 'image':
       return 768; // Standard image token count
       
-    case 'tool_use':
+    case 'tool_use': {
       let tokens = encoder.encode(block.name).length;
       try {
         const inputStr = JSON.stringify(block.input);
         tokens += encoder.encode(inputStr).length;
-      } catch (error) {
+      } catch {
         if (logger) {
           logger.warning({
             event: LogEvent.TOOL_INPUT_SERIALIZATION_FAILURE,
@@ -156,6 +156,7 @@ function countContentBlockTokens(
         }
       }
       return tokens;
+    }
       
     case 'tool_result':
       try {
@@ -165,7 +166,7 @@ function countContentBlockTokens(
         } else if (Array.isArray(block.content)) {
           for (const item of block.content) {
             if (typeof item === 'object' && item !== null && 'type' in item && item.type === 'text') {
-              contentStr += (item as any).text || '';
+              contentStr += (item as { text?: string }).text || '';
             } else {
               contentStr += JSON.stringify(item);
             }
@@ -174,7 +175,7 @@ function countContentBlockTokens(
           contentStr = JSON.stringify(block.content);
         }
         return encoder.encode(contentStr).length;
-      } catch (error) {
+      } catch {
         if (logger) {
           logger.warning({
             event: LogEvent.TOOL_RESULT_SERIALIZATION_FAILURE,
