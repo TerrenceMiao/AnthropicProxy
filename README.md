@@ -1,4 +1,4 @@
-# Anthropic Proxy (TypeScript)
+# Anthropic Proxy
 
 A TypeScript-based proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API to access alternative models.
 

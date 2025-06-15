@@ -383,7 +383,7 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
 |__/  |__/|__/  |__/   \\___/  |__/  |__/|__/       \\______/ | $$____/ |__/ \\_______/      |__/     |__/       \\______/ |__/  \\__/ \\____  $$
                                                             | $$                                                                  /$$  | $$
                                                             | $$                                                                 |  $$$$$$/
-                                                            |__/                                                                  \\______/     
+                                                            |__/                                                       NextGen™   \\______/  
       `);
       
       console.log('\n📊 \x1b[36m%s\x1b[0m', 'Anthropic Proxy Configuration');
