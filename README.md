@@ -1,5 +1,9 @@
 # Anthropic Proxy
 
+[![npm version](https://badge.fury.io/js/mcp-interactive-feedback.svg)](https://www.npmjs.com/package/anthropic-proxy-nextgen)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+
 A TypeScript-based proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API to access alternative models.
 
 ![Anthropic Proxy Logo](https://raw.githubusercontent.com/TerrenceMiao/AnthropicProxy/refs/heads/main/images/AnthropicProxy.png)

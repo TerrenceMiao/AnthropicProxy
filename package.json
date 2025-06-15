@@ -27,6 +27,14 @@
   ],
   "author": "Terrence Miao",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TerrenceMiao/AnthropicProxy.git"
+  },
+  "homepage": "https://github.com/TerrenceMiao/AnthropicProxy#README",
+  "bugs": {
+    "url": "https://github.com/TerrenceMiao/AnthropicProxy/issues"
+  },  
   "engines": {
     "node": ">=18.0.0"
   },
