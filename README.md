@@ -2,7 +2,7 @@
 
 A TypeScript-based proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API to access alternative models.
 
-![Anthropic Proxy Logo](AnthropicProxy.png)
+![Anthropic Proxy Logo](images/AnthropicProxy.png)
 
 ## Overview
 
@@ -11,13 +11,20 @@ Anthropic/Claude Proxy provides a compatibility layer between Anthropic/Claude a
 Key features:
 
 - Express.js web server exposing Anthropic/Claude compatible endpoints
-- Format conversion between Anthropic/Claude API and OpenAI API requests/responses
-  (see [mapping](docs/mapping.md) for translation details)
+- Format conversion between Anthropic/Claude API and OpenAI API requests/responses (see [MAPPING](MAPPING.md) for translation details)
 - Support for both streaming and non-streaming responses
 - Dynamic model selection based on requested Claude model
 - Detailed request/response logging
 - Token counting
 - CLI interface with npm package distribution
+
+ **Model**: `deepseek/deepseek-chat-v3-0324` on **OpenRouter**
+ 
+![Anthropic Proxy example](images/deepseek.png)
+ 
+ **Model**: `claude-sonnet-4` on **Github Copilot**
+ 
+![Anthropic Proxy example](images/copilot.png)
 
 ## Installation
 
