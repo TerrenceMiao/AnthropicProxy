@@ -3,6 +3,7 @@
   "version": "1.0.2",
   "description": "A proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API",
   "main": "dist/index.js",
+  "type": "module",
   "bin": {
     "anthropic-proxy-nextgen": "dist/cli.js"
   },
