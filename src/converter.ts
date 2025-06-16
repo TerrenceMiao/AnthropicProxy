@@ -10,8 +10,8 @@ import {
   Usage,
   ContentBlockText,
   ContentBlockToolUse,
-} from './types';
-import { Logger } from './logger';
+} from './types.js';
+import { Logger } from './logger.js';
 import { ChatCompletion } from 'openai/resources/chat/completions';
 import type { ChatCompletionMessageParam, ChatCompletionTool, ChatCompletionToolChoiceOption } from 'openai/resources/chat/completions';
 

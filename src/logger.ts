@@ -1,5 +1,5 @@
 import winston from 'winston';
-import { Config, LogRecord } from './types';
+import { Config, LogRecord } from './types.js';
 
 class JSONFormatter {
   transform(info: winston.Logform.TransformableInfo) {

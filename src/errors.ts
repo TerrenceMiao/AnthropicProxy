@@ -8,8 +8,8 @@ import {
   STATUS_CODE_ERROR_MAP, 
   ProviderErrorMetadata,
   LogEvent
-} from './types';
-import { Logger } from './logger';
+} from './types.js';
+import { Logger } from './logger.js';
 
 export function extractProviderErrorDetails(errorDetails?: unknown): ProviderErrorMetadata | undefined {
   if (!errorDetails || typeof errorDetails !== 'object') {

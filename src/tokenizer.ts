@@ -1,6 +1,6 @@
 import { Tiktoken, encoding_for_model, get_encoding } from 'tiktoken';
-import { Message, SystemContent, Tool, ContentBlock, LogEvent } from './types';
-import { Logger } from './logger';
+import { Message, SystemContent, Tool, ContentBlock, LogEvent } from './types.js';
+import { Logger } from './logger.js';
 
 const tokenEncoderCache: Map<string, Tiktoken> = new Map();
 

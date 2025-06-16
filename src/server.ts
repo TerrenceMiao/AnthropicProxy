@@ -8,25 +8,25 @@ import {
   TokenCountRequestSchema,
   LogEvent,
   AnthropicErrorType 
-} from './types';
-import { Logger } from './logger';
-import { 
+} from './types.js';
+import { Logger } from './logger.js';
+import {
   selectTargetModel,
   convertAnthropicToOpenAIMessages,
   convertAnthropicToolsToOpenAI,
   convertAnthropicToolChoiceToOpenAI,
   convertOpenAIToAnthropicResponse
-} from './converter';
-import { countTokensForAnthropicRequest } from './tokenizer';
-import { handleAnthropicStreamingResponseFromOpenAIStream } from './streaming';
-import { 
+} from './converter.js';
+import { countTokensForAnthropicRequest } from './tokenizer.js';
+import { handleAnthropicStreamingResponseFromOpenAIStream } from './streaming.js';
+import {
   logAndReturnErrorResponse,
   getAnthropicErrorDetailsFromException,
   createOpenAIAPIErrorHandler,
   createValidationErrorHandler,
   createJSONDecodeErrorHandler,
   createGenericErrorHandler
-} from './errors';
+} from './errors.js';
 
 export async function startServer(config: Config, logger: Logger): Promise<void> {
   const app = express();

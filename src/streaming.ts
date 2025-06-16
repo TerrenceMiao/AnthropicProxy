@@ -2,9 +2,9 @@ import { Response } from 'express';
 import { ChatCompletionChunk } from 'openai/resources/chat/completions';
 import { Stream } from 'openai/streaming';
 import { v4 as uuidv4 } from 'uuid';
-import { getTokenEncoder } from './tokenizer';
-import { Logger } from './logger';
-import { LogEvent, StopReasonType, AnthropicErrorType } from './types';
+import { getTokenEncoder } from './tokenizer.js';
+import { Logger } from './logger.js';
+import { LogEvent, StopReasonType, AnthropicErrorType } from './types.js';
 
 interface ToolState {
   id: string;

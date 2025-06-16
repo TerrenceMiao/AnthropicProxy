@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { startServer } from './server';
-import { Config } from './types';
-import { createLogger, Logger } from './logger';
+import { startServer } from './server.js';
+import { Config } from './types.js';
+import { createLogger, Logger } from './logger.js';
 import { execSync } from 'child_process';
 
 const program = new Command();
