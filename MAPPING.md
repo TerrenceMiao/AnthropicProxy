@@ -56,10 +56,13 @@ This document provides a detailed, field-by-field mapping between Anthropic’s 
 ## API Endpoints
 
 - **Anthropic Messages API Endpoint:**
+
   ```
   POST /v1/messages
   ```
+
 - **OpenAI Chat Completions API Endpoint:**
+
   ```
   POST /v1/chat/completions
   ```
@@ -109,8 +112,8 @@ Mapping Anthropic request fields to OpenAI:
 
 #### Anthropic Messages Format
 
--   `role`: Must be `user` or `assistant` within the `messages` array.
--   `content`: Can be a string OR an array of content blocks (`text`, `image`, `tool_result`).
+- `role`: Must be `user` or `assistant` within the `messages` array.
+- `content`: Can be a string OR an array of content blocks (`text`, `image`, `tool_result`).
 
 ```json
 // Anthropic User Message with Text
@@ -145,10 +148,10 @@ Mapping Anthropic request fields to OpenAI:
 
 #### OpenAI Messages Format
 
--   `role`: Can be `system`, `user`, `assistant`, or `function`.
--   `content`: Typically a string (for `system`, `user`, `assistant`, `function` roles). Can be `null` for `assistant` messages containing only a `function_call`.
--   `function_call`: Optional object in `assistant` messages indicating a function invocation.
--   `name`: Required for `function` role messages, identifying the function whose result is provided.
+- `role`: Can be `system`, `user`, `assistant`, or `function`.
+- `content`: Typically a string (for `system`, `user`, `assistant`, `function` roles). Can be `null` for `assistant` messages containing only a `function_call`.
+- `function_call`: Optional object in `assistant` messages indicating a function invocation.
+- `name`: Required for `function` role messages, identifying the function whose result is provided.
 
 ```json
 // OpenAI System Message
@@ -169,82 +172,84 @@ Mapping Anthropic request fields to OpenAI:
 
 #### Mapping Messages (User & Assistant Turns)
 
--   **Roles:**
-    -   Anthropic `user` -> OpenAI `user`.
-    -   Anthropic `assistant` -> OpenAI `assistant`.
-    -   Anthropic only allows `user` and `assistant` in the `messages` array. OpenAI also uses `system` (mapped from top-level `system`) and `function` (mapped from Anthropic `tool_result`, see below).
--   **Content Conversion:**
-    -   **Text:** If Anthropic `content` is a string or a single `text` block, use the text directly as OpenAI `content`. If multiple `text` blocks, concatenate them into a single string for OpenAI `content`.
-    -   **Image Blocks:** Anthropic `image` blocks (`type: "image"`) are **not supported** by the standard OpenAI Chat Completions API. **Action:** The proxy must either:
-        1.  Omit the image block entirely.
-        2.  Attempt conversion (e.g., use a separate Vision API or tool to generate a text description) and include the description in the OpenAI message `content`. This is a significant gap.
-    -   **Partial Assistant Prefill:** Anthropic allows the last message to be `role: "assistant"` to provide a prefix for the model to continue. OpenAI does **not** support this "prefill" mechanism directly. **Action:** This feature cannot be reliably proxied. Best approach is to disallow or ignore such partial assistant messages in the request.
+- **Roles:**
+  - Anthropic `user` -> OpenAI `user`.
+  - Anthropic `assistant` -> OpenAI `assistant`.
+  - Anthropic only allows `user` and `assistant` in the `messages` array. OpenAI also uses `system` (mapped from top-level `system`) and `function` (mapped from Anthropic `tool_result`, see below).
+- **Content Conversion:**
+  - **Text:** If Anthropic `content` is a string or a single `text` block, use the text directly as OpenAI `content`. If multiple `text` blocks, concatenate them into a single string for OpenAI `content`.
+  - **Image Blocks:** Anthropic `image` blocks (`type: "image"`) are **not supported** by the standard OpenAI Chat Completions API. **Action:** The proxy must either:
+    1.  Omit the image block entirely.
+    2.  Attempt conversion (e.g., use a separate Vision API or tool to generate a text description) and include the description in the OpenAI message `content`. This is a significant gap.
+  - **Partial Assistant Prefill:** Anthropic allows the last message to be `role: "assistant"` to provide a prefix for the model to continue. OpenAI does **not** support this "prefill" mechanism directly. **Action:** This feature cannot be reliably proxied. Best approach is to disallow or ignore such partial assistant messages in the request.
 
 #### Mapping Tool Result Messages (User Turn)
 
 This is critical for multi-turn tool use:
 
--   **Anthropic Input:** A `user` message containing one or more `tool_result` content blocks.
-    ```json
-    {
-      "role": "user",
-      "content": [
-        {
-          "type": "tool_result",
-          "tool_use_id": "toolu_abc",
-          "content": "{\"temp\": 72}" // Can be string or JSON object/array
-        }
-      ]
-    }
-    ```
--   **OpenAI Output:** Map **each** `tool_result` block to a separate OpenAI message with `role: "function"`.
-    -   `role`: `"function"`
-    -   `name`: The name of the tool/function corresponding to the `tool_use_id`. The proxy needs to track the mapping between the `tool_use_id` generated in the previous assistant response and the tool name.
-    -   `content`: The output/result provided in the `content` field of the `tool_result`. OpenAI expects this to be a string (usually JSON stringified).
+- **Anthropic Input:** A `user` message containing one or more `tool_result` content blocks.
 
-    ```json
-    {
-      "role": "function",
-      "name": "get_current_weather", // Retrieved via toolu_abc mapping
-      "content": "{\"temp\": 72}"
-    }
-    ```
--   **Placement:** These `function` role messages should be placed in the OpenAI `messages` array immediately after the `assistant` message that contained the corresponding `function_call` (which was mapped from Anthropic's `tool_use`).
+  ```json
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "tool_use_id": "toolu_abc",
+        "content": "{\"temp\": 72}" // Can be string or JSON object/array
+      }
+    ]
+  }
+  ```
+- **OpenAI Output:** Map **each** `tool_result` block to a separate OpenAI message with `role: "function"`.
+  -   `role`: `"function"`
+  -   `name`: The name of the tool/function corresponding to the `tool_use_id`. The proxy needs to track the mapping between the `tool_use_id` generated in the previous assistant response and the tool name.
+  -   `content`: The output/result provided in the `content` field of the `tool_result`. OpenAI expects this to be a string (usually JSON stringified).
+
+  ```json
+  {
+    "role": "function",
+    "name": "get_current_weather", // Retrieved via toolu_abc mapping
+    "content": "{\"temp\": 72}"
+  }
+  ```
+
+- **Placement:** These `function` role messages should be placed in the OpenAI `messages` array immediately after the `assistant` message that contained the corresponding `function_call` (which was mapped from Anthropic's `tool_use`).
 
 ### System Prompts
 
--   **Anthropic:** Uses a top-level `system` parameter (string).
--   **OpenAI:** Uses a message with `role: "system"` at the beginning of the `messages` array.
--   **Mapping:** Convert Anthropic's `system` string into `{"role": "system", "content": "<system_string>"}` and make it the first element (`messages[0]`) in the OpenAI request `messages` list. Ensure this is done for every turn if the conversation is stateful on the client side.
+- **Anthropic:** Uses a top-level `system` parameter (string).
+- **OpenAI:** Uses a message with `role: "system"` at the beginning of the `messages` array.
+- **Mapping:** Convert Anthropic's `system` string into `{"role": "system", "content": "<system_string>"}` and make it the first element (`messages[0]`) in the OpenAI request `messages` list. Ensure this is done for every turn if the conversation is stateful on the client side.
 
 ### Tools and Functions
 
 #### Tool Definitions
 
--   **Anthropic `tools`:** Array of objects, each with `name`, `description`, `input_schema` (JSON Schema).
--   **OpenAI `functions`:** Array of objects, each with `name`, `description`, `parameters` (JSON Schema).
+- **Anthropic `tools`:** Array of objects, each with `name`, `description`, `input_schema` (JSON Schema).
+- **OpenAI `functions`:** Array of objects, each with `name`, `description`, `parameters` (JSON Schema).
 
 #### Mapping Tool Definitions
 
--   Directly map each Anthropic `tool` to an OpenAI `function`:
-    -   `name` -> `name`
-    -   `description` -> `description`
-    -   `input_schema` -> `parameters` (both expect JSON Schema format).
--   **Built-in Tools:** Anthropic mentions beta built-in tools (e.g., `bash`). OpenAI has no direct equivalent.Proxy should treat these as custom tools/functions if needed, defining the expected schema, or simply not support them.
+- Directly map each Anthropic `tool` to an OpenAI `function`:
+  - `name` -> `name`
+  - `description` -> `description`
+  - `input_schema` -> `parameters` (both expect JSON Schema format).
+- **Built-in Tools:** Anthropic mentions beta built-in tools (e.g., `bash`). OpenAI has no direct equivalent.Proxy should treat these as custom tools/functions if needed, defining the expected schema, or simply not support them.
 
 #### Tool Usage Control
 
--   **Anthropic `tool_choice`:** Object controlling how the model uses tools (`type`: `auto`, `any`, `tool`, `none`).
--   **OpenAI `function_call`:** String or object controlling function usage (`auto`, `none`, `{"name": "..."}`).
+- **Anthropic `tool_choice`:** Object controlling how the model uses tools (`type`: `auto`, `any`, `tool`, `none`).
+- **OpenAI `function_call`:** String or object controlling function usage (`auto`, `none`, `{"name": "..."}`).
 
 #### Mapping Tool Choices
 
-| Anthropic `tool_choice`                     | OpenAI `function_call`      | Notes                                                                                                   |
-| ------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `{"type": "auto"}` (or omitted)             | `"auto"` (or omitted)       | Model decides whether to call a function and which one. (Default behavior for both).                      |
-| `{"type": "any"}`                           | `"auto"`                    | Force the model to use *any* available tool. OpenAI has no direct equivalent. Map to `"auto"` and potentially add instructions in the system prompt (e.g., "You must use a tool if appropriate"). |
-| `{"type": "tool", "name": "tool_name"}`     | `{"name": "tool_name"}`     | Force the model to call the specified tool/function.                                                    |
-| Omitted / Default                           | Omitted / Default (`"auto"`) | If Anthropic `tool_choice` is not provided, use OpenAI's default (`"auto"`).                             |
+| Anthropic `tool_choice`                     | OpenAI `function_call`            | Notes |
+| ------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `{"type": "auto"}` (or omitted)             | `"auto"` (or omitted)             | Model decides whether to call a function and which one. (Default behavior for both). |
+| `{"type": "any"}`                           | `"auto"`                          | Force the model to use *any* available tool. OpenAI has no direct equivalent. Map to `"auto"` and potentially add instructions in the system prompt (e.g., "You must use a tool if appropriate"). |
+| `{"type": "tool", "name": "tool_name"}`     | `{"name": "tool_name"}`           | Force the model to call the specified tool/function. |
+| Omitted / Default                           | Omitted / Default (`"auto"`)      | If Anthropic `tool_choice` is not provided, use OpenAI's default (`"auto"`). |
 | *(Note: Anthropic also has a "none" type implied by omitting tools)* | `"none"` | If no tools are provided, or if explicit prevention is needed, OpenAI can use `"none"`. This doesn't seem to directly map from an Anthropic option but might be needed for specific proxy logic. |
 
 
@@ -521,14 +526,14 @@ Translate HTTP status codes and inherent error types:
 
 | OpenAI HTTP Code | OpenAI Error Type (`error.type`)                | Anthropic HTTP Code | Anthropic Error Type (`error.type`) | Notes                                        |
 | ---------------- | ----------------------------------------------- | ------------------- | ----------------------------------- | -------------------------------------------- |
-| 400              | `invalid_request_error`                         | 400                 | `invalid_request_error`             | Bad request (syntax, missing fields, etc.)  |
+| 400              | `invalid_request_error`                         | 400                 | `invalid_request_error`             | Bad request (syntax, missing fields, etc.)   |
 | 401              | `authentication_error`                          | 401                 | `authentication_error`              | Invalid API key                              |
 | 403              | `permission_denied_error`                       | 403                 | `permission_error`                  | Insufficient permissions/access              |
-| 404              | `not_found_error`                               | 404                 | `not_found_error`                   | Resource/model not found                   |
+| 404              | `not_found_error`                               | 404                 | `not_found_error`                   | Resource/model not found                     |
 | 429              | `rate_limit_error`                              | 429                 | `rate_limit_error`                  | Rate limit exceeded                          |
 | 500              | `internal_server_error`, `api_error`            | 500                 | `api_error`                         | Internal server error on provider side       |
-| 503              | `service_unavailable_error`, `overloaded_error` | 529                 | `overloaded_error`                  | Server overloaded / temporarily unavailable |
-| 400              | *e.g., context length exceeded*                 | 400                 | `invalid_request_error`             | Map specific 400s appropriately          |
+| 503              | `service_unavailable_error`, `overloaded_error` | 529                 | `overloaded_error`                  | Server overloaded / temporarily unavailable  |
+| 400              | *e.g., context length exceeded*                 | 400                 | `invalid_request_error`             | Map specific 400s appropriately              |
 
 *Note:* Error type names might vary slightly depending on specific SDK versions. Use the canonical types where possible.
 
@@ -538,40 +543,276 @@ Translate common client-side errors (network issues, timeouts) consistently:
 
 | OpenAI Client Exception     | Anthropic Equivalent Context | Notes                                               |
 | --------------------------- | ---------------------------- | --------------------------------------------------- |
-| `openai.APIConnectionError` | Network connectivity issue   | Could not connect to OpenAI API.                      |
+| `openai.APIConnectionError` | Network connectivity issue   | Could not connect to OpenAI API.                    |
 | `openai.APITimeoutError`    | Request timeout issue        | Request to OpenAI timed out.                        |
-| `openai.RateLimitError`     | Rate limit exceeded          | Received 429 from OpenAI.                         |
+| `openai.RateLimitError`     | Rate limit exceeded          | Received 429 from OpenAI.                           |
 | `openai.BadRequestError`    | Invalid request              | Received 400 from OpenAI (validation, etc.).        |
-| `openai.AuthenticationError`| Authentication failed        | Received 401 from OpenAI.                         |
-| `openai.PermissionDeniedError`| Permission issue           | Received 403 from OpenAI.                         |
-| `openai.NotFoundError`      | Resource not found           | Received 404 from OpenAI.                         |
-| `openai.InternalServerError`| Upstream server error        | Received 5xx from OpenAI.                         |
+| `openai.AuthenticationError`| Authentication failed        | Received 401 from OpenAI.                           |
+| `openai.PermissionDeniedError`| Permission issue           | Received 403 from OpenAI.                           |
+| `openai.NotFoundError`      | Resource not found           | Received 404 from OpenAI.                           |
+| `openai.InternalServerError`| Upstream server error        | Received 5xx from OpenAI.                           |
 
 The proxy should catch OpenAI client errors and return corresponding Anthropic-style HTTP errors and JSON bodies.
 
 ### Implementation Considerations
 
--   **Preserve Messages:** Include the original OpenAI error message within the translated Anthropic error structure for debugging.
--   **Request IDs:** Pass through relevant request IDs (`X-Request-ID`, etc.) if available.
--   **Proxy Context:** Add context indicating the error originated from the upstream provider (OpenAI).
--   **Streaming Errors:** Handle errors that occur *after* the stream has started (e.g., network drop). May require terminating the SSE stream with an error signal if possible, or logging.
--   **Retries:** Implement appropriate retry logic (e.g., exponential backoff) for transient errors like rate limits (429) or server issues (5xx).
+- **Preserve Messages:** Include the original OpenAI error message within the translated Anthropic error structure for debugging.
+- **Request IDs:** Pass through relevant request IDs (`X-Request-ID`, etc.) if available.
+- **Proxy Context:** Add context indicating the error originated from the upstream provider (OpenAI).
+- **Streaming Errors:** Handle errors that occur *after* the stream has started (e.g., network drop). May require terminating the SSE stream with an error signal if possible, or logging.
+- **Retries:** Implement appropriate retry logic (e.g., exponential backoff) for transient errors like rate limits (429) or server issues (5xx).
 
 ---
 
 ## Important Considerations & Gaps
 
--   **Model Behavior:** Mapping APIs doesn't guarantee identical model performance, reasoning, alignment, or adherence to instructions. Claude and GPT-4 have inherent differences.
--   **Unsupported Anthropic Features:**
-    -   `top_k`: Cannot be mapped.
-    -   Partial Assistant Prefill: Cannot be mapped.
-    -   Built-in Tools (beta): Require custom mapping or are unsupported.
--   **Unsupported Content Types:**
-    -   **Images:** Standard OpenAI Chat API does not accept image inputs. This is a major gap requiring workarounds (omission, OCR/captioning).
--   **Role Mapping for Tool Results:** The conversion between Anthropic's `user` role + `tool_result` content and OpenAI's `function` role is crucial and requires careful state management in the proxy.
--   **Tool Choice `any`:** Anthropic's `{"type": "any"}` cannot be directly enforced in OpenAI; mapping to `"auto"` is the closest functional equivalent.
--   **System Prompt Handling:** Ensure the Anthropic `system` prompt is consistently prepended as the first `system` role message in the OpenAI request history for every turn.
--   **Streaming Usage:** OpenAI does not provide usage stats in stream chunks. Proxy must calculate and append at the end.
--   **Error Granularity:** Error type details might differ slightly. Aim for the closest conceptual match.
+- **Model Behavior:** Mapping APIs doesn't guarantee identical model performance, reasoning, alignment, or adherence to instructions. Claude and GPT-4 have inherent differences.
+- **Unsupported Anthropic Features:**
+  - `top_k`: Cannot be mapped.
+  - Partial Assistant Prefill: Cannot be mapped.
+  - Built-in Tools (beta): Require custom mapping or are unsupported.
+- **Unsupported Content Types:**
+  - **Images:** Standard OpenAI Chat API does not accept image inputs. This is a major gap requiring workarounds (omission, OCR/captioning).
+- **Role Mapping for Tool Results:** The conversion between Anthropic's `user` role + `tool_result` content and OpenAI's `function` role is crucial and requires careful state management in the proxy.
+- **Tool Choice `any`:** Anthropic's `{"type": "any"}` cannot be directly enforced in OpenAI; mapping to `"auto"` is the closest functional equivalent.
+- **System Prompt Handling:** Ensure the Anthropic `system` prompt is consistently prepended as the first `system` role message in the OpenAI request history for every turn.
+- **Streaming Usage:** OpenAI does not provide usage stats in stream chunks. Proxy must calculate and append at the end.
+- **Error Granularity:** Error type details might differ slightly. Aim for the closest conceptual match.
 
 This mapping provides a comprehensive guide for translating between the Anthropic Messages API and OpenAI Chat Completions API, leveraging the detailed information from the provided research. Careful implementation considering the nuances and gaps identified is essential for a functional proxy.
+
+
+# Summary (by Claude Code)
+
+## Task
+
+1. Visit the OpenAI API documentation page at https://platform.openai.com/docs/api-reference and thoroughly gather all provided API specifications, endpoints, parameters, and guidelines.
+2. Visit the Anthropic API documentation page at https://docs.anthropic.com/en/api and similarly collect all API details, including endpoints, parameters, and usage policies.
+3. Analyze both documents to identify all overlapping/similar features, functionalities, or structures, as well as distinct differences in technical details, design philosophies, rate limits, authentication processes, error handling, or unique capabilities. Provide this comparison in extensive and meticulous detail, ensuring no nuance is overlooked.
+
+## Comprehensive OpenAI vs Anthropic API Comparison
+
+  Core Endpoints & Functionality
+
+  Chat Completions (Primary Overlap)
+
+  Both APIs center around chat completion endpoints:
+
+  OpenAI: [/v1/chat/completions](/v1/chat/completions)
+  - Models: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo variants
+  - Support for system/user/assistant message roles
+  - Function calling capabilities
+  - Streaming responses via SSE
+
+  Anthropic: [/v1/messages](/v1/messages)
+  - Models: Claude 3 (Opus, Sonnet, Haiku), Claude 3.5 Sonnet
+  - Support for user/assistant roles (no explicit system role)
+  - Tool use capabilities (similar to function calling)
+  - Streaming responses via SSE
+
+  Unique OpenAI Endpoints
+
+  - [/v1/completions](/v1/completions) - Legacy text completion
+  - [/v1/embeddings](/v1/embeddings) - Text embeddings generation
+  - [/v1/images/generations](/v1/images/generations) - DALL-E image generation
+  - [/v1/images/variations](/v1/images/variations) - Image variations
+  - [/v1/images/edits](/v1/images/edits) - Image editing
+  - [/v1/audio/transcriptions](/v1/audio/transcriptions) - Whisper speech-to-text
+  - [/v1/audio/translations](/v1/audio/translations) - Audio translation
+  - [/v1/audio/speech](/v1/audio/speech) - Text-to-speech
+  - [/v1/fine-tuning/*](/v1/fine-tuning/*) - Fine-tuning management
+  - [/v1/assistants/*](/v1/assistants/*) - Assistants API
+  - [/v1/threads/*](/v1/threads/*) - Thread management
+  - [/v1/files/*](/v1/files/*) - File management
+  - [/v1/moderations](/v1/moderations) - Content moderation
+
+  Unique Anthropic Features
+
+  - No image generation or audio capabilities
+  - No fine-tuning options
+  - Focus purely on text-based conversational AI
+  - Superior context window (up to 200K tokens for Claude-3)
+
+  Authentication & Security
+
+  OpenAI
+
+  - Bearer token authentication: <span style="color:#9cdcfe">Authorization: Bearer sk-...</span>
+  - Organization headers for team management
+  - Project-based API keys
+  - Usage tracking per organization/project
+
+  Anthropic
+
+  - API key authentication: <span style="color:#9cdcfe">x-api-key: sk-ant-...</span>
+  - Anthropic version headers required: <span style="color:#9cdcfe">anthropic-version: 2023-06-01</span>
+  - Simpler authentication model
+  - No organization-level management
+
+  Request/Response Structure
+
+  Message Format Differences
+
+  OpenAI:
+
+  ```json
+  {
+    "model": "gpt-4",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant"},
+      {"role": "user", "content": "Hello"}
+    ]
+  }
+```
+
+  Anthropic:
+
+  ```json
+  {
+    "model": "claude-3-sonnet-20240229",
+    "system": "You are a helpful assistant",
+    "messages": [
+      {"role": "user", "content": "Hello"}
+    ]
+  }
+```
+
+  Key Parameter Differences
+
+  OpenAI Parameters:
+  - <span style="color:#9cdcfe">temperature</span> (0-2)
+  - <span style="color:#9cdcfe">max_tokens</span>
+  - <span style="color:#9cdcfe">top_p</span>
+  - <span style="color:#9cdcfe">frequency_penalty</span>
+  - <span style="color:#9cdcfe">presence_penalty</span>
+  - <span style="color:#9cdcfe">functions</span> / <span style="color:#9cdcfe">tools</span>
+  - <span style="color:#9cdcfe">function_call</span> / <span style="color:#9cdcfe">tool_choice</span>
+
+  Anthropic Parameters:
+  - <span style="color:#9cdcfe">temperature</span> (0-1)
+  - <span style="color:#9cdcfe">max_tokens</span>
+  - <span style="color:#9cdcfe">top_p</span>
+  - <span style="color:#9cdcfe">top_k</span>
+  - <span style="color:#9cdcfe">tools</span>
+  - <span style="color:#9cdcfe">tool_choice</span>
+  - <span style="color:#9cdcfe">stop_sequences</span>
+
+  Rate Limits & Pricing Philosophy
+
+  OpenAI
+
+  - Tier-based rate limiting (Tier 1-5)
+  - RPM (Requests Per Minute) and TPM (Tokens Per Minute) limits
+  - Complex pricing tiers based on usage volume
+  - Input/output token pricing differentiation
+
+  Anthropic
+
+  - Simpler rate limiting structure
+  - Focus on requests per minute
+  - More straightforward pricing model
+  - Generally more expensive per token but higher quality
+
+  Error Handling
+
+  OpenAI
+
+  - Standard HTTP status codes
+  - Detailed error objects with <span style="color:#9cdcfe">type</span>, <span style="color:#9cdcfe">message</span>, <span style="color:#9cdcfe">param</span>, <span style="color:#9cdcfe">code</span>
+  - Rate limit headers in responses
+  - Specific error types: <span style="color:#9cdcfe">invalid_request_error</span>, <span style="color:#9cdcfe">authentication_error</span>, etc.
+
+  Anthropic
+
+  - HTTP status codes
+  - Error objects with <span style="color:#9cdcfe">type</span>, <span style="color:#9cdcfe">message</span>
+  - Simpler error taxonomy
+  - Focus on clear, actionable error messages
+
+  Streaming Differences
+
+  OpenAI
+
+  - Server-Sent Events with <span style="color:#9cdcfe">data</span>:  prefix
+  - <span style="color:#9cdcfe">[DONE]</span> marker at stream end
+  - Delta-based streaming (partial content updates)
+
+  Anthropic
+
+  - Server-Sent Events
+  - Event types: <span style="color:#9cdcfe">message_start</span>, <span style="color:#9cdcfe">content_block_delta</span>, <span style="color:#9cdcfe">message_stop</span>
+  - More granular streaming events
+
+  Content Safety & Moderation
+
+  OpenAI
+
+  - Dedicated [/v1/moderations](/v1/moderations) endpoint
+  - Built-in content filtering
+  - Configurable safety settings
+
+  Anthropic
+
+  - Built-in constitutional AI safety
+  - No separate moderation endpoint
+  - Philosophy-driven safety approach
+
+  Context & Token Limits
+
+  OpenAI
+
+  - GPT-4: 8K-128K tokens depending on variant
+  - GPT-3.5: 4K-16K tokens
+  - Function calling reduces available context
+
+  Anthropic
+
+  - Claude-3: Up to 200K tokens
+  - Generally larger context windows
+  - More efficient context utilization
+
+  Tool/Function Calling
+
+  OpenAI
+
+  - <span style="color:#9cdcfe">functions</span> (legacy) and <span style="color:#9cdcfe">tools</span> (current)
+  - Parallel function calling
+  - Forced function calling via <span style="color:#9cdcfe">tool_choice</span>
+
+  Anthropic
+
+  - <span style="color:#9cdcfe">tools</span> parameter
+  - Similar parallel tool execution
+  - Tool choice control via <span style="color:#9cdcfe">tool_choice</span>
+
+  Design Philosophy Differences
+
+  OpenAI
+
+  - Broad AI platform approach
+  - Multiple modalities (text, image, audio)
+  - Focus on developer ecosystem and integrations
+  - More experimental features
+
+  Anthropic
+
+  - AI safety and alignment focus
+  - Constitutional AI approach
+  - Text-focused excellence
+  - Conservative, research-driven development
+
+  SDK & Integration Support
+
+  OpenAI
+
+  - Official SDKs: Python, Node.js, .NET, Go
+  - Extensive third-party integrations
+  - Large ecosystem support
+
+  Anthropic
+
+  - Official SDKs: Python, TypeScript
+  - Growing but smaller ecosystem
+  - Focus on quality over quantity
+
+  This comprehensive comparison covers all major aspects of both APIs, highlighting their overlapping features, distinct differences, and underlying design philosophies.
