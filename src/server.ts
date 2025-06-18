@@ -52,7 +52,7 @@ export async function startServer(config: Config, logger: Logger): Promise<void>
   }
 
   // Middleware
-  app.use(express.json());
+  app.use(express.json({ limit: '100mb' }));
   
   // Request logging middleware
   app.use((req: Request, res: Response, next) => {
