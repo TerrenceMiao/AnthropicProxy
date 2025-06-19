@@ -281,6 +281,7 @@ github: https://api.githubcopilot.com/mcp/ (HTTP)
   }  
 }
 ```
+
 ## Architecture
 
 This TypeScript implementation maintains the same core functionality as the Python version:
