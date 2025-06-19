@@ -1,6 +1,6 @@
 {
   "name": "anthropic-proxy-nextgen",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A proxy service that allows Anthropic/Claude API requests to be routed through an OpenAI compatible API",
   "main": "dist/index.js",
   "type": "module",
