@@ -35,13 +35,13 @@ Key features:
 ### Global Installation
 
 ```bash
-npm install -g anthropic-proxy-nextgen
+$ npm install -g anthropic-proxy-nextgen
 ```
 
 ### Local Installation
 
 ```bash
-npm install anthropic-proxy-nextgen
+$ npm install anthropic-proxy-nextgen
 ```
 
 ## Usage
@@ -51,7 +51,7 @@ npm install anthropic-proxy-nextgen
 Start the proxy server using the CLI:
 
 ```bash
-npx anthropic-proxy-nextgen start \
+$ npx anthropic-proxy-nextgen start \
   --port 8080 \
   --base-url=http://localhost:4000 \
   --big-model-name=github-copilot-claude-sonnet-4 \
@@ -63,7 +63,7 @@ npx anthropic-proxy-nextgen start \
 or run with `node`:
 
 ```bash
-node dist/cli.js start \
+$ node dist/cli.js start \
   --port 8080 \
   --base-url=http://localhost:4000 \
   --big-model-name=github-copilot-claude-sonnet-4 \
@@ -135,24 +135,24 @@ await startServer(config, logger);
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd AnthropicProxy
+$ git clone <repository-url>
+$ cd AnthropicProxy
 
 # Install dependencies
-npm install
+$ npm install
 
 # Build the project
-npm run build
+$ npm run build
 
 # Run in development mode
-npm run dev
+$ npm run dev
 
 # Run tests
-npm test
+$ npm test
 
 # Lint and type check
-npm run lint
-npm run type-check
+$ npm run lint
+$ npm run type-check
 ```
 
 ### Build Commands
@@ -184,7 +184,7 @@ ANTHROPIC_BASE_URL=http://localhost:8080 claude
 ### OpenRouter
 
 ```bash
-npx anthropic-proxy-nextgen start \
+$ npx anthropic-proxy-nextgen start \
   --base-url=https://openrouter.ai/api/v1 \
   --openai-api-key=sk-or-v1-your-openrouter-key \
   --big-model-name=anthropic/claude-3-opus \
@@ -194,7 +194,7 @@ npx anthropic-proxy-nextgen start \
 ### GitHub Copilot
 
 ```bash
-npx anthropic-proxy-nextgen start \
+$ npx anthropic-proxy-nextgen start \
   --base-url=http://localhost:4000 \
   --openai-api-key=sk-your-github-copilot-key \
   --big-model-name=github-copilot-claude-sonnet-4 \
@@ -204,13 +204,83 @@ npx anthropic-proxy-nextgen start \
 ### Local LLM
 
 ```bash
-npx anthropic-proxy-nextgen start \
+$ npx anthropic-proxy-nextgen start \
   --base-url=http://localhost:1234/v1 \
   --openai-api-key=not-needed \
   --big-model-name=local-large-model \
   --small-model-name=local-small-model
 ```
 
+## MCP
+
+```bash
+$ claude mcp add Context7 -- npx -y @upstash/context7-mcp
+Added stdio MCP server Context7 with command: npx -y @upstash/context7-mcp to local config
+
+$ claude mcp add atlassian -- npx -y mcp-remote https://mcp.atlassian.com/v1/sse
+Added stdio MCP server atlassian with command: npx -y mcp-remote https://mcp.atlassian.com/v1/sse to local config
+
+$ claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
+Added stdio MCP server sequential-thinking with command: npx -y @modelcontextprotocol/server-sequential-thinking to local config
+
+$ claude mcp add sequential-thinking-tools -- npx -y mcp-sequentialthinking-tools
+Added stdio MCP server sequential-thinking-tools with command: npx -y mcp-sequentialthinking-tools to local config
+
+$ claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+Added HTTP MCP server github with URL: https://api.githubcopilot.com/mcp/ to local config
+
+$ claude mcp list
+Context7: npx -y @upstash/context7-mcp
+sequential-thinking: npx -y @modelcontextprotocol/server-sequential-thinking
+mcp-sequentialthinking-tools: npx -y mcp-sequentialthinking-tools
+atlassian: npx -y mcp-remote https://mcp.atlassian.com/v1/sse
+github: https://api.githubcopilot.com/mcp/ (HTTP)
+```
+
+```json
+"mcpServers": {
+  "Context7": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@upstash/context7-mcp"
+    ],
+    "env": {}
+  },
+  "sequential-thinking": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-sequential-thinking"
+    ],
+    "env": {}
+  },
+  "mcp-sequentialthinking-tools": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "mcp-sequentialthinking-tools"
+    ]
+  },
+  "atlassian": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "mcp-remote",
+      "https://mcp.atlassian.com/v1/sse"
+    ],
+    "env": {}
+  },
+  "github": {
+    "type": "http",
+    "url": "https://api.githubcopilot.com/mcp/"
+  }  
+}
+```
 ## Architecture
 
 This TypeScript implementation maintains the same core functionality as the Python version:
@@ -231,6 +301,11 @@ The TypeScript version provides the same API and functionality as the Python Fas
 3. **Configuration**: Same environment variables but also supports CLI arguments
 4. **Performance**: Node.js async I/O for high concurrency
 5. **Dependencies**: Uses Express.js instead of FastAPI, Winston instead of Python logging
+
+## REFERENCES
+
+- Atlassian Remote MCP Server beta now available for desktop applications, _https://community.atlassian.com/forums/Atlassian-Platform-articles/Atlassian-Remote-MCP-Server-beta-now-available-for-desktop/ba-p/3022084_
+- Using the Atlassian Remote MCP Server beta, _https://community.atlassian.com/forums/Atlassian-Platform-articles/Using-the-Atlassian-Remote-MCP-Server-beta/ba-p/3005104_
 
 ## License
 
