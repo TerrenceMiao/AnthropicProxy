@@ -5,6 +5,23 @@ import { startServer } from './server.js';
 import { Config } from './types.js';
 import { createLogger, Logger } from './logger.js';
 import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Helper function to get package version from package.json
+function getPackageVersion(): string {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packagePath = join(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
+    return packageJson.version || 'unknown';
+  } catch {
+    console.warn('Warning: Could not read package version from package.json');
+    return 'unknown';
+  }
+}
 
 const program = new Command();
 
@@ -39,6 +56,9 @@ program
     } catch {
       claudeCodeVersion = 'unknown';
     }
+    
+    const appVersion = getPackageVersion();
+    
     const config: Config = {
       host: options.host,
       port: parseInt(options.port, 10),
@@ -51,7 +71,7 @@ program
       logFilePath: options.logFile,
       reload: options.reload !== false,
       appName: 'AnthropicProxy',
-      appVersion: '1.0.0',
+      appVersion,
       claudeCodeVersion,
     };
 
