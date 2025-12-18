@@ -129,3 +129,6 @@ temp/
 .gitconfig
 .aider*
 **/.claude/settings.local.json
+
+# YoYo AI version control directory
+.yoyo/
