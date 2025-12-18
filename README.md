@@ -64,12 +64,12 @@ or run with `node`:
 
 ```bash
 $ node dist/cli.js start \
-  --port 8080 \
-  --base-url=http://localhost:4000 \
-  --big-model-name=github-copilot-claude-sonnet-4 \
-  --small-model-name=github-copilot-claude-3.5-sonnet \
+  --port 11000 \
+  --base-url=http://localhost:10000 \
+  --big-model-name=github-copilot-claude-sonnet-4.5 \
+  --small-model-name=github-copilot-claude-sonnet-4 \
   --openai-api-key=sk-your-api-key \
-  --log-level=DEBUG
+  --log-level=DEBUG  
 ```
 
 #### CLI Options
