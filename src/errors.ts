@@ -201,7 +201,8 @@ export async function logAndReturnErrorResponse(
 
 // Express error handlers
 export function createOpenAIAPIErrorHandler(logger: Logger) {
-  return async (error: APIError, req: Request, res: Response) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return async (error: APIError, req: Request, res: Response, _next: express.NextFunction) => {
     const { errorType, errorMessage, statusCode, providerDetails } = getAnthropicErrorDetailsFromException(error);
     await logAndReturnErrorResponse(
       req,
@@ -255,7 +256,8 @@ export function createJSONDecodeErrorHandler(logger: Logger) {
 }
 
 export function createGenericErrorHandler(logger: Logger) {
-  return async (error: Error, req: Request, res: Response) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return async (error: Error, req: Request, res: Response, _next: express.NextFunction) => {
     await logAndReturnErrorResponse(
       req,
       res,
